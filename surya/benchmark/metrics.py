@@ -2,7 +2,7 @@ from functools import partial
 from itertools import repeat
 
 import numpy as np
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 def intersection_area(box1, box2):
     x_left = max(box1[0], box2[0])
@@ -85,7 +85,7 @@ def precision_recall(preds, references, threshold=.5, workers=8, penalize_double
     if penalize_double:
         coverage_func = calculate_coverage
 
-    with ProcessPoolExecutor(max_workers=workers) as executor:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
         precision_func = partial(coverage_func, penalize_double=penalize_double)
         precision_iou = executor.map(precision_func, preds, repeat(references))
         reference_iou = executor.map(coverage_func, references, repeat(preds))

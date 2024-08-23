@@ -8,7 +8,7 @@ from tqdm import tqdm
 from surya.input.processing import slice_bboxes_from_image
 from surya.settings import settings
 import os
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from surya.detection import get_batch_size as get_det_batch_size
 from surya.recognition import get_batch_size as get_rec_batch_size
 from surya.languages import CODE_TO_LANGUAGE
@@ -43,7 +43,7 @@ def tesseract_ocr_parallel(imgs, bboxes, langs: List[str], cpus=None):
     # Divide by 2 because tesseract doesn't seem to saturate all 4 cores with these small images
     tess_parallel = max(tess_parallel_cores // 2, 1)
 
-    with ProcessPoolExecutor(max_workers=tess_parallel) as executor:
+    with ThreadPoolExecutor(max_workers=tess_parallel) as executor:
         tess_text = tqdm(executor.map(tesseract_ocr, imgs, bboxes, langs), total=len(imgs), desc="Running tesseract OCR")
         tess_text = list(tess_text)
     return tess_text
@@ -73,7 +73,7 @@ def tesseract_parallel(imgs):
     # Tesseract uses 4 threads per instance
     tess_parallel = max(tess_parallel_cores // 4, 1)
 
-    with ProcessPoolExecutor(max_workers=tess_parallel) as executor:
+    with ThreadPoolExecutor(max_workers=tess_parallel) as executor:
         tess_bboxes = tqdm(executor.map(tesseract_bboxes, imgs), total=len(imgs), desc="Running tesseract bbox detection")
         tess_bboxes = list(tess_bboxes)
     return tess_bboxes
